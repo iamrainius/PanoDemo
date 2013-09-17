@@ -5,8 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.android.debug.hv.ViewServer;
-import com.jingz.app.pano.ui.GLRootView;
+//import com.android.debug.hv.ViewServer;
 import com.jingz.app.pano.ui.ShutterButton;
 
 public class PanoActivity extends Activity {
@@ -17,14 +16,13 @@ public class PanoActivity extends Activity {
 	private View mShutterSwitcher;
 	private ShutterButton mShutter;
 	private boolean mPaused;
-	private GLRootView mGLRootView;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.pano_activity);
 		
-		ViewServer.get(this).addWindow(this);
+		//ViewServer.get(this).addWindow(this);
 		
 		mFrame = (FrameLayout) findViewById(R.id.main_content);
 		init();
@@ -44,7 +42,7 @@ public class PanoActivity extends Activity {
 		mPaused = false;
 		//mOrientationListener.enable();
 		super.onResume();
-		ViewServer.get(this).setFocusedWindow(this);
+		//ViewServer.get(this).setFocusedWindow(this);
 		
 		mPanoController.onResume();
 	}
@@ -66,7 +64,7 @@ public class PanoActivity extends Activity {
 	@Override
     public void onDestroy() {
     	super.onDestroy();
-    	ViewServer.get(this).removeWindow(this);
+    	//ViewServer.get(this).removeWindow(this);
     }
 
 	public ShutterButton getShutterButton() {
