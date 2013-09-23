@@ -1,5 +1,6 @@
 package com.jingz.app.pano;
 
+import com.jingz.app.pano.ui.LightCycleView;
 import com.jingz.app.pano.ui.RotateImageView;
 import com.jingz.app.pano.ui.ShutterButton;
 import com.jingz.app.pano.ui.ShutterButton.OnShutterButtonListener;
@@ -16,6 +17,7 @@ public class PanoramaController {
 	
 	private PanoActivity mActivity;
 	private View mRootView;
+	private LightCycleView mMainView;
 	private ViewGroup mContainer;
 	private boolean mIsPaused;
 	private ShutterButton mShutterButton;
@@ -82,6 +84,8 @@ public class PanoramaController {
 	}
 	
 	private void startCapture() {
+		mNumberOfImages = 0;
+		
 		
 	}
 
