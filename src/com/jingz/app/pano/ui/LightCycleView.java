@@ -9,6 +9,10 @@ import android.util.AttributeSet;
 
 public class LightCycleView extends GLSurfaceView {
 
+	
+
+	private Context mContext;
+
 	public LightCycleView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
@@ -20,6 +24,10 @@ public class LightCycleView extends GLSurfaceView {
 			LightCycleRenderer renderer,
 			SurfaceTexture surfaceTexture) {
 		super(activity);
+		mContext = activity;
 	}
 
+	public interface ProgressCallback {
+		void progress(int progress);
+	}
 }
