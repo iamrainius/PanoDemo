@@ -10,7 +10,7 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
-    <com.jingz.app.pano.ui.ShutterButton
+    <com.android.gallery3d.ui.ShutterButton
         android:id="@+id/shutter_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

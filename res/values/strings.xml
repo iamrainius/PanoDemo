@@ -6,4 +6,12 @@
     <string name="hello_world">Hello world!</string>
     
     <string name="accessibility_shutter_button">Shutter button</string>
+
+	<!-- Camera format string for new image files. Passed to java.text.SimpleDateFormat. -->
+    <string name="image_file_name_format" translatable="false">"'IMG'_yyyyMMdd_HHmmss"</string>
+    <!-- title for the dialog showing the error of camera hardware -->
+    <string name="camera_error_title">Camera error</string>
+    <!-- Dialog "OK" button. Dismisses dialog. -->
+    <string name="dialog_ok">OK</string>
+    
 </resources>
