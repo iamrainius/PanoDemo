@@ -1,9 +1,13 @@
 package com.jingz.app.pano;
 
+import java.io.FileInputStream;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.os.Build;
@@ -18,6 +22,7 @@ import android.view.ViewGroup;
 import com.android.camera.CameraScreenNail;
 import com.android.camera.ComboPreferences;
 import com.android.camera.RecordLocationPreference;
+import com.android.camera.Util;
 import com.android.gallery3d.ui.RotateImageView;
 import com.android.gallery3d.ui.ShutterButton;
 import com.android.gallery3d.ui.ShutterButton.OnShutterButtonListener;
@@ -42,7 +47,6 @@ import com.google.android.apps.lightcycle.util.Callback;
 import com.google.android.apps.lightcycle.util.LG;
 import com.google.android.apps.lightcycle.util.Size;
 import com.google.android.apps.lightcycle.util.UiUtil;
-import com.jingz.app.pano.util.Util;
 
 //import android.hardware.Camera.Size;
 
@@ -138,6 +142,10 @@ public class PanoramaController {
 	private boolean mStichingPaused;
 	private SharedPreferences mPreferences;
 	private boolean mFullScreen = true;
+	private int mOrientation;
+	private int mOrientationCompensation;
+	private int mDisplayRotation;
+	private Thread mPhotoSpherePreviewWriter;
 	
 	static {
 		CameraApiProxy.setActiveProxy(new CameraApiProxyAndroidImpl());
@@ -230,7 +238,26 @@ public class PanoramaController {
 	}
 
 	private void onDoneButtonPressed() {
+		pauseCapture();
+		mNumberOfImages = 0;
+		adjustSwitcherAndSwipe();
+		mScreenNail.animateCapture(mDisplayRotation);
+		mPhotoSpherePreviewWriter = new Thread() {
 
+			@Override
+			public void run() {
+				Bitmap bitmap = ((BitmapDrawable) mActivity.getResources()
+						.getDrawable(R.drawable.ic_view_photosphere))
+						.getBitmap();
+				
+				FileInputStream in;
+				
+				in = new FileInputStream(mLocalStorage.mosaicFilePath);
+				
+			}
+			
+		};
+		mPhotoSpherePreviewWriter.start();
 	}
 
 	public void onPause() {
@@ -349,8 +376,21 @@ public class PanoramaController {
 	}
 
 	private void stopCapture() {
-		// TODO Auto-generated method stub
-
+		mStichingPaused = false;
+		LocalBroadcastManager
+				.getInstance(mActivity)
+				.sendBroadcast(
+						new Intent(
+								"com.google.android.apps.lightcycle.panorama.RESUME"));
+		if (mMainView != null) {
+			mMainView.onPause();
+			((ViewGroup) mRootView).removeView(mMainView);
+			mMainView.stopCamera();
+		}
+		
+		mMainView = null;
+		mNumberOfImages = 0;
+		adjustSwitcherAndSwipe();
 	}
 	
 	private void adjustSwitcherAndSwipe() {
@@ -410,4 +450,23 @@ public class PanoramaController {
 		mMainView.setLocationProviderEnabled(enable);
 	}
 	
+	public void onOrientationChanged(int orientation) {
+		mOrientation = Util.roundOrientation(orientation, mOrientation);
+		int orient = mOrientation + Util.getDisplayRotation(mActivity);
+		if (mOrientationCompensation == orient) {
+			return;
+		}
+		
+		mOrientationCompensation = orient;
+		if (mUndoButton != null) {
+			mUndoButton.setOrientation(mOrientationCompensation, true);
+		}
+		setDisplayRotation();
+	}
+
+	private void setDisplayRotation() {
+		mDisplayRotation = Util.getDisplayRotation(mActivity);
+//		mActivity.getGLRoot().
+		
+	}
 }

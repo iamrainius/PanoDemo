@@ -1,10 +1,15 @@
 package com.jingz.app.pano;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
+import android.view.OrientationEventListener;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 
+import com.android.camera.CameraActivity.MyOrientationEventListener;
+import com.android.camera.Util;
 import com.android.gallery3d.app.OrientationManager;
 import com.android.gallery3d.ui.ScreenNail;
 //import com.android.debug.hv.ViewServer;
@@ -22,20 +27,29 @@ public class PanoActivity extends Activity {
 	//private MyAppBridge mAppBridge;
 	private ScreenNail mCameraScreenNail;
 	private OrientationManager mOrientationManager;
+	private MyOrientationEventListener mOrientationListener;
+	// The degrees of the device rotated clockwise from its natural orientation.
+    private int mLastRawOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
+	private int mOrientation;
+	public int mOrientationCompensation;
+
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		onSuperCreate();
 		setContentView(R.layout.pano_activity);
-		
-		mOrientationManager = new OrientationManager(this);
-		//ViewServer.get(this).addWindow(this);
-		
 		mFrame = (FrameLayout) findViewById(R.id.main_content);
 		init();
 		mPanoController = PanoramaController.getInstance();
-		mPanoController.init(this, mFrame, true);
-		//mOrientationListener = new MyOrientationEventListener(this);
+		mPanoController.init(this, mFrame, false);
+		mOrientationListener = new MyOrientationEventListener(this);
+	}
+	
+	private void onSuperCreate() {
+		mOrientationManager = new OrientationManager(this);
+		getWindow().setBackgroundDrawable(null);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 	}
 
 	private void init() {
@@ -47,18 +61,16 @@ public class PanoActivity extends Activity {
 	@Override
 	protected void onResume() {
 		mPaused = false;
-		//mOrientationListener.enable();
+		mOrientationListener.enable();
 		super.onResume();
 		mOrientationManager.resume();
-		//ViewServer.get(this).setFocusedWindow(this);
-		
 		mPanoController.onResume();
 	}
 	
 	@Override
 	protected void onPause() {
 		mPaused = true;
-		//mOrientationListener.disable();
+		mOrientationListener.disable();
 		mPanoController.onPause();
 		mOrientationManager.pause();
 		super.onPause();
@@ -135,5 +147,29 @@ public class PanoActivity extends Activity {
 //        if (mCurrentModule.needsSwitcher()) {
 //            mSwitcher.setVisibility(View.VISIBLE);
 //        }
+    }
+    
+    private class MyOrientationEventListener
+    		extends OrientationEventListener {
+    	public MyOrientationEventListener(Context context) {
+    		super(context);
+    	}
+
+		@Override
+		public void onOrientationChanged(int orientation) {
+		    // We keep the last known orientation. So if the user first orient
+		    // the camera then point the camera to floor or sky, we still have
+		    // the correct orientation.
+		    if (orientation == ORIENTATION_UNKNOWN) {
+		    	return;
+		    }
+		    mOrientation = Util.roundOrientation(orientation, mOrientation);
+		    int orient = (mOrientation + Util.getDisplayRotation(PanoActivity.this)) % 360;
+		    if (mOrientationCompensation != orient) {
+		    	mOrientationCompensation = orient;
+		    }
+		    
+		    mPanoController.onOrientationChanged(orientation);
+		}
     }
 }

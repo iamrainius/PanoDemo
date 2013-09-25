@@ -459,7 +459,8 @@ containing a value of this type.
         public static final int ic_exposure_p2=0x7f02000c;
         public static final int ic_exposure_p3=0x7f02000d;
         public static final int ic_launcher=0x7f02000e;
-        public static final int list_pressed_holo_light=0x7f02000f;
+        public static final int ic_view_photosphere=0x7f02000f;
+        public static final int list_pressed_holo_light=0x7f020010;
     }
     public static final class id {
         public static final int action_settings=0x7f0b0009;
