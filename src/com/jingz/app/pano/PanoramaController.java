@@ -1,18 +1,25 @@
 package com.jingz.app.pano;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Process;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +34,7 @@ import com.android.gallery3d.ui.RotateImageView;
 import com.android.gallery3d.ui.ShutterButton;
 import com.android.gallery3d.ui.ShutterButton.OnShutterButtonListener;
 import com.google.android.apps.lightcycle.LightCycleApp;
+import com.google.android.apps.lightcycle.PanoramaModule;
 import com.google.android.apps.lightcycle.camera.CameraApiProxy;
 import com.google.android.apps.lightcycle.camera.CameraApiProxyAndroidImpl;
 import com.google.android.apps.lightcycle.camera.CameraPreview;
@@ -39,6 +47,8 @@ import com.google.android.apps.lightcycle.panorama.LightCycleNative;
 import com.google.android.apps.lightcycle.panorama.LightCycleRenderer;
 import com.google.android.apps.lightcycle.panorama.LightCycleView;
 import com.google.android.apps.lightcycle.panorama.RenderedGui;
+import com.google.android.apps.lightcycle.panorama.StitchingService;
+import com.google.android.apps.lightcycle.panorama.StitchingServiceManager;
 import com.google.android.apps.lightcycle.sensor.SensorReader;
 import com.google.android.apps.lightcycle.storage.LocalSessionStorage;
 import com.google.android.apps.lightcycle.storage.StorageManager;
@@ -250,14 +260,47 @@ public class PanoramaController {
 						.getDrawable(R.drawable.ic_view_photosphere))
 						.getBitmap();
 				
-				FileInputStream in;
+				FileOutputStream out = null;
 				
-				in = new FileInputStream(mLocalStorage.mosaicFilePath);
+				try {
+					
+					out = new FileOutputStream(mLocalStorage.mosaicFilePath);
+					bitmap.compress(CompressFormat.JPEG, 100, out);
+					
+					ContentValues contentValues = StitchingService
+							.createImageContentValues(mLocalStorage.mosaicFilePath);
+					contentValues.put("mimeType", "application/stitching-preview");
+					Uri uri = mActivity.getContentResolver().insert(
+							MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+							contentValues);
+					mLocalStorage.imageUri = uri;
+					
+					StitchingServiceManager.getStitchingServiceManager(
+							mActivity).onStitchingQueued(mLocalStorage);
+				} catch (IOException e) {
+					if (out == null) {
+						Log.e("LightCycle", "Could not write image: "
+								+ mLocalStorage.mosaicFilePath);
+					}
+				} finally {
+					try {
+						out.close();
+					} catch (IOException e) {
+						Log.e("LightCycle", "Could not close write image: "
+								+ mLocalStorage.mosaicFilePath);
+					}
+				}
 				
 			}
 			
 		};
+		
 		mPhotoSpherePreviewWriter.start();
+	}
+
+	private void pauseCapture() {
+		mMainView.stopCamera();
+		mSensorReader.stop();
 	}
 
 	public void onPause() {
