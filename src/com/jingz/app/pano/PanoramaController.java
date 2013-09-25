@@ -30,6 +30,7 @@ import com.android.camera.CameraScreenNail;
 import com.android.camera.ComboPreferences;
 import com.android.camera.RecordLocationPreference;
 import com.android.camera.Util;
+import com.android.gallery3d.app.GalleryApp;
 import com.android.gallery3d.ui.RotateImageView;
 import com.android.gallery3d.ui.ShutterButton;
 import com.android.gallery3d.ui.ShutterButton.OnShutterButtonListener;
@@ -511,5 +512,57 @@ public class PanoramaController {
 		mDisplayRotation = Util.getDisplayRotation(mActivity);
 //		mActivity.getGLRoot().
 		
+	}
+
+	public void onPreviewTextureCopied() {
+	}
+
+	public void onCaptureTextureCopied() {
+		if (mMainView == null) {
+			return;
+		}
+		
+		mMainView.clearRendering();
+		mAligner.shutdown(new Callback<Void>() {
+
+			@Override
+			public void onCallback(Void arg0) {
+				if (mAligner.isRealtimeAlignmentEnabled()
+						|| mAligner.isExtractFeaturesAndThumbnailEnabled()) {
+					// :cond_0
+					try {
+						mPhotoSpherePreviewWriter.join();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					
+					// :goto_0
+					LightCycleNative.PreviewStitch(mLocalStorage.mosaicFilePath);
+					if (mLocalStorage.imageUri != null) {
+						// :cond_2
+//						GalleryApp app = (GalleryApp) mActivity.getApplication();
+//						app.getStitchingProgressManager().;
+						
+						ContentValues contentValues = StitchingService.createImageContentValues(mLocalStorage.mosaicFilePath);
+						contentValues.remove("mime_type");
+						contentValues.remove("datetaken");
+						mActivity.getContentResolver().update(mLocalStorage.imageUri, contentValues, null, null);
+						
+					} else {
+						Log.w ("LightCycle", "Prepared preview doesn\'t exist");
+					}
+				}
+				
+				// :cond_1
+				// :goto_1
+				mActivity.runOnUiThread(new Runnable() {
+					
+					@Override
+					public void run() {
+						
+					}
+				});
+			}
+		});
 	}
 }
