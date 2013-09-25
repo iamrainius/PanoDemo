@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
-import com.android.camera.CameraActivity.MyOrientationEventListener;
 import com.android.camera.Util;
 import com.android.gallery3d.app.OrientationManager;
 import com.android.gallery3d.ui.ScreenNail;
